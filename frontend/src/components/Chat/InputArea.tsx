@@ -536,7 +536,7 @@ export function InputArea() {
 
   return (
     <div className="px-4 pb-4 pt-2" style={{ maxWidth: 'var(--chat-max-width)', margin: '0 auto', width: '100%' }}>
-      <div className="mb-2 flex flex-col gap-1">
+      <div className="hidden">
         <div className="flex items-center gap-2">
           <button
             type="button"

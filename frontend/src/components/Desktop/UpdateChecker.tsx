@@ -163,6 +163,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '10px 24px',
     backgroundColor: '#181825',
     borderBottom: '1px solid #313244',
+    color: '#e6f1ff',
   },
   row: {
     display: 'flex',

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { ChatArea } from '../components/Chat/ChatArea';
 import { CameraGestureControl } from '../components/JarvisCamera/CameraGestureControl';
 import { MemoryGraph } from '../components/JarvisMemory/MemoryGraph';
-import { SystemPanel } from '../components/Chat/SystemPanel';
 import { JarvisOrb } from '../components/JarvisOrb/JarvisOrb';
 import { orbStateFromStream } from '../components/JarvisOrb/orb-state';
 import { SatelliteControl } from '../components/JarvisVoice/SatelliteControl';
@@ -12,8 +10,6 @@ import { JarvisBrowser } from '../components/JarvisBrowser/JarvisBrowser';
 import { useAppStore } from '../lib/store';
 
 export function ChatPage() {
-  const systemPanelOpen = useAppStore((s) => s.systemPanelOpen);
-  const toggleSystemPanel = useAppStore((s) => s.toggleSystemPanel);
   const streamState = useAppStore((s) => s.streamState);
   const messages = useAppStore((s) => s.messages);
   const [speaking, setSpeaking] = useState(false);
@@ -57,8 +53,6 @@ export function ChatPage() {
     };
   }, []);
 
-  const PanelIcon = systemPanelOpen ? PanelRightClose : PanelRightOpen;
-
   return (
     <div className="flex h-full overflow-hidden bg-[#02070c]">
       <div className="relative flex-1 min-w-0 overflow-hidden">
@@ -68,14 +62,6 @@ export function ChatPage() {
         <div className="pointer-events-none absolute left-6 top-5 font-mono text-[10px] tracking-[0.28em] text-cyan-200/70">
           J.A.R.V.I.S. <span className="text-cyan-400">// {orbState.toUpperCase()}</span>
         </div>
-        <button
-          type="button"
-          onClick={toggleSystemPanel}
-          className="pointer-events-auto absolute right-5 top-16 z-20 rounded-full border border-cyan-300/20 bg-slate-950/70 p-2 text-cyan-200/70 backdrop-blur transition-colors hover:border-cyan-300/50 hover:text-cyan-200 cursor-pointer"
-          title={`${systemPanelOpen ? 'Hide' : 'Show'} system panel (Ctrl+I)`}
-        >
-          <PanelIcon size={14} />
-        </button>
         <SatelliteControl />
         {voiceError && (
           <div className="pointer-events-none absolute right-5 top-28 z-20 rounded-full border border-amber-300/30 bg-slate-950/80 px-3 py-2 font-mono text-[9px] tracking-wider text-amber-200 backdrop-blur">
@@ -83,14 +69,12 @@ export function ChatPage() {
           </div>
         )}
         <JarvisBrowser />
-        {!cameraMode && <CameraGestureControl />}
         <MemoryGraph />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[42vh] bg-gradient-to-t from-[#02070c] via-[#02070c]/60 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 z-10">
           <ChatArea />
         </div>
       </div>
-      {systemPanelOpen && <SystemPanel />}
     </div>
   );
 }
