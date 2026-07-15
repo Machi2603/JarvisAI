@@ -55,7 +55,7 @@ Por tanto no hay que construir ni distribuir manualmente un `.exe` en cada
 cambio. Sí hay que publicar una release estable cuando se quiera entregar una
 actualización a usuarios.
 
-Los secretos de GitHub necesarios son:
+Los secretos de GitHub configurados el 15 de julio de 2026 son:
 
 - `TAURI_SIGNING_PRIVATE_KEY`
 - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`
