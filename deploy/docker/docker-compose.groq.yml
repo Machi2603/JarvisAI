@@ -1,0 +1,26 @@
+services:
+  jarvis:
+    image: ${JARVIS_IMAGE:-jarvis-local}
+    pull_policy: never
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+      args:
+        VITE_DEFAULT_MODEL: groq/openai/gpt-oss-120b
+    command: ["serve", "--host", "0.0.0.0", "--port", "8000", "--engine", "litellm", "--model", "groq/openai/gpt-oss-120b", "--agent", "native_react"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      GROQ_API_KEY: ${GROQ_API_KEY:?set GROQ_API_KEY in deploy/docker/.env}
+      OPENJARVIS_API_KEY: ${OPENJARVIS_API_KEY:?set OPENJARVIS_API_KEY in deploy/docker/.env}
+      OPENJARVIS_LITELLM_MODEL: groq/openai/gpt-oss-120b
+      OPENJARVIS_WORKSPACE: /workspace
+      OPENJARVIS_AGENT_TOOLS: current_time,web_search,browser_navigate,browser_screenshot,browser_extract,file_read,propose_code_patch
+    volumes:
+      - jarvis-home:/home/openjarvis
+      - ../..:/workspace
+      - ./runtime-config.js:/usr/local/lib/python3.12/site-packages/openjarvis/server/static/runtime-config.js:ro
+    restart: unless-stopped
+
+volumes:
+  jarvis-home:
