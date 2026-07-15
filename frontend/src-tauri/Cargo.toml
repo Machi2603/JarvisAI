@@ -1,5 +1,5 @@
 [package]
-name = "jarvisai-desktop"
+name = "jarvis-desktop"
 version = "1.0.1"
 description = "JarvisAI desktop assistant"
 edition = "2021"
