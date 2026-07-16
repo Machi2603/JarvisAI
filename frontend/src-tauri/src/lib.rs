@@ -17,6 +17,19 @@ use tokio::sync::Mutex;
 const OLLAMA_PORT: u16 = 11434;
 const JARVIS_PORT: u16 = 18080;
 
+#[cfg(windows)]
+fn apply_windows_caption_color(window: &tauri::WebviewWindow) {
+    use windows_sys::Win32::Graphics::Dwm::DwmSetWindowAttribute;
+
+    let Ok(hwnd) = window.hwnd() else { return };
+    let caption: u32 = 0x00261407; // #071426 in Windows COLORREF (BGR).
+    let text: u32 = 0x00E6F1FF;
+    unsafe {
+        let _ = DwmSetWindowAttribute(hwnd.0, 35, &caption as *const _ as *const _, 4);
+        let _ = DwmSetWindowAttribute(hwnd.0, 36, &text as *const _ as *const _, 4);
+    }
+}
+
 #[cfg(target_os = "macos")]
 use overlay::native_overlay;
 
@@ -46,6 +59,10 @@ pub fn run() {
         }))
         .setup(move |app| {
             retire_legacy_satellite_task();
+            #[cfg(windows)]
+            if let Some(window) = app.get_webview_window("main") {
+                apply_windows_caption_color(&window);
+            }
             let _ = app.autolaunch().enable();
             if std::env::args().any(|arg| arg == "--hidden") {
                 if let Some(window) = app.get_webview_window("main") {

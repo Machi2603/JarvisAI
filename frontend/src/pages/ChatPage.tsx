@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { Settings } from 'lucide-react';
+import { useNavigate } from 'react-router';
 import { ChatArea } from '../components/Chat/ChatArea';
 import { CameraGestureControl } from '../components/JarvisCamera/CameraGestureControl';
 import { MemoryGraph } from '../components/JarvisMemory/MemoryGraph';
@@ -10,6 +12,7 @@ import { JarvisBrowser } from '../components/JarvisBrowser/JarvisBrowser';
 import { useAppStore } from '../lib/store';
 
 export function ChatPage() {
+  const navigate = useNavigate();
   const streamState = useAppStore((s) => s.streamState);
   const messages = useAppStore((s) => s.messages);
   const [speaking, setSpeaking] = useState(false);
@@ -70,6 +73,15 @@ export function ChatPage() {
         )}
         <JarvisBrowser />
         <MemoryGraph />
+        <button
+          type="button"
+          onClick={() => navigate('/settings')}
+          className="absolute bottom-5 left-5 z-20 rounded-full border border-cyan-300/20 bg-slate-950/70 p-2 text-cyan-200/75 backdrop-blur transition-colors hover:border-cyan-300/50 hover:text-cyan-100"
+          title="Ajustes"
+          aria-label="Ajustes"
+        >
+          <Settings size={16} />
+        </button>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[42vh] bg-gradient-to-t from-[#02070c] via-[#02070c]/60 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 z-10">
           <ChatArea />
