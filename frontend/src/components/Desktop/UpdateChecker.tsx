@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useAppStore } from '../../lib/store';
+import { t } from '../../lib/i18n';
 
 type UpdateState = 'idle' | 'available' | 'downloading' | 'ready' | 'error';
 
@@ -24,6 +26,7 @@ export function setAutoUpdateDisabled(disabled: boolean): void {
 }
 
 export function UpdateChecker() {
+  const locale = useAppStore((s) => s.settings.locale);
   const [state, setState] = useState<UpdateState>('idle');
   const [version, setVersion] = useState('');
   const [progress, setProgress] = useState(0);
@@ -121,18 +124,18 @@ export function UpdateChecker() {
     <div style={styles.banner}>
       {state === 'available' && (
         <div style={styles.row}>
-          <span>Update available: <strong>v{version}</strong></span>
+          <span>{t(locale, 'updateAvailableBanner')}: <strong>v{version}</strong></span>
           <div style={styles.actions}>
-            <button style={styles.primaryBtn} onClick={handleDownload}>Download</button>
-            <button style={styles.secondaryBtn} onClick={() => setDismissed(true)}>Later</button>
-            <button style={styles.muteBtn} onClick={handleDisable}>Disable auto-updates</button>
+            <button style={styles.primaryBtn} onClick={handleDownload}>{t(locale, 'download')}</button>
+            <button style={styles.secondaryBtn} onClick={() => setDismissed(true)}>{t(locale, 'later')}</button>
+            <button style={styles.muteBtn} onClick={handleDisable}>{t(locale, 'disableAutoUpdates')}</button>
           </div>
         </div>
       )}
 
       {state === 'downloading' && (
         <div style={styles.row}>
-          <span>Downloading update... {progress}%</span>
+          <span>{t(locale, 'downloading')} {progress}%</span>
           <div style={styles.progressBar}>
             <div style={{ ...styles.progressFill, width: `${progress}%` }} />
           </div>
@@ -141,17 +144,17 @@ export function UpdateChecker() {
 
       {state === 'ready' && (
         <div style={styles.row}>
-          <span style={{ color: '#a6e3a1' }}>Update installed.</span>
+          <span style={{ color: '#a6e3a1' }}>{t(locale, 'updateInstalled')}</span>
           <div style={styles.actions}>
-            <button style={styles.successBtn} onClick={handleRelaunch}>Relaunch now</button>
-            <button style={styles.secondaryBtn} onClick={() => setDismissed(true)}>Later</button>
+            <button style={styles.successBtn} onClick={handleRelaunch}>{t(locale, 'relaunch')}</button>
+            <button style={styles.secondaryBtn} onClick={() => setDismissed(true)}>{t(locale, 'later')}</button>
           </div>
         </div>
       )}
 
       {state === 'error' && (
         <div style={styles.row}>
-          <span style={{ color: '#f38ba8' }}>Update error: {errorMsg}</span>
+          <span style={{ color: '#f38ba8' }}>{t(locale, 'updateError')}: {errorMsg}</span>
         </div>
       )}
     </div>

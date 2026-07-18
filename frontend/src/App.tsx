@@ -28,6 +28,10 @@ export default function App() {
     else if (settings.theme === 'light') root.classList.add('light');
   }, [settings.theme]);
 
+  useEffect(() => {
+    document.documentElement.lang = settings.locale;
+  }, [settings.locale]);
+
   // Sync overlay conversations into the main app
   const importOverlay = useAppStore((s) => s.importOverlayConversation);
   useEffect(() => {
@@ -120,7 +124,15 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<ChatPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="settings"
+            element={
+              <>
+                <ChatPage />
+                <SettingsPage />
+              </>
+            }
+          />
         </Route>
       </Routes>
       <Toaster position="bottom-right" />

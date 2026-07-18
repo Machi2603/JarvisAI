@@ -44,6 +44,10 @@ class _BrowserSession:
         self._worker.submit(self._close).result()
         self._worker.shutdown(wait=False)
 
+    def reset(self) -> None:
+        """Close the current page without discarding the reusable worker."""
+        self._worker.submit(self._close).result()
+
     def _close(self) -> None:
         if self._browser:
             self._browser.close()

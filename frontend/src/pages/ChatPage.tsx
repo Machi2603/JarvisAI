@@ -7,17 +7,23 @@ import { MemoryGraph } from '../components/JarvisMemory/MemoryGraph';
 import { JarvisOrb } from '../components/JarvisOrb/JarvisOrb';
 import { orbStateFromStream } from '../components/JarvisOrb/orb-state';
 import { SatelliteControl } from '../components/JarvisVoice/SatelliteControl';
+import { WakeWordControl } from '../components/JarvisVoice/WakeWordControl';
 import { speakThroughSatellite, stopSatelliteSpeech, type SatelliteState } from '../components/JarvisVoice/satellite';
 import { JarvisBrowser } from '../components/JarvisBrowser/JarvisBrowser';
 import { useAppStore } from '../lib/store';
+import { t } from '../lib/i18n';
+import { setJarvisBrowserOpen } from '../lib/api';
 
 export function ChatPage() {
   const navigate = useNavigate();
   const streamState = useAppStore((s) => s.streamState);
   const messages = useAppStore((s) => s.messages);
+  const locale = useAppStore((s) => s.settings.locale);
+  const speechEnabled = useAppStore((s) => s.settings.speechEnabled);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState(false);
   const [cameraMode, setCameraMode] = useState(false);
+  const [browserOpen, setBrowserOpen] = useState(false);
   // While Jarvis is actually speaking, the orb goes into its reactive
   // 'speaking' state; the orb expands with the real voice waveform.
   const orbState = speaking ? 'speaking' : orbStateFromStream(streamState.isStreaming, streamState.phase);
@@ -25,10 +31,10 @@ export function ChatPage() {
 
   useEffect(() => {
     const last = messages[messages.length - 1];
-    if (streamState.isStreaming || !last || last.role !== 'assistant' || !last.content || spokenMessage.current === last.id) return;
+    if (!speechEnabled || streamState.isStreaming || !last || last.role !== 'assistant' || !last.content || spokenMessage.current === last.id) return;
     spokenMessage.current = last.id;
     setVoiceError(!speakThroughSatellite(last.content));
-  }, [messages, streamState.isStreaming]);
+  }, [messages, speechEnabled, streamState.isStreaming]);
 
   useEffect(() => {
     const stop = () => stopSatelliteSpeech();
@@ -44,6 +50,24 @@ export function ChatPage() {
       window.removeEventListener('jarvis-satellite-state', update);
     };
   }, []);
+
+  const openBrowser = () => {
+    setBrowserOpen(true);
+    void setJarvisBrowserOpen(true).catch(() => undefined);
+  };
+  const closeBrowser = () => {
+    setBrowserOpen(false);
+    void setJarvisBrowserOpen(false).catch(() => undefined);
+  };
+
+  useEffect(() => {
+    window.addEventListener('jarvis-browser-open', openBrowser);
+    window.addEventListener('jarvis-browser-close', closeBrowser);
+    return () => {
+      window.removeEventListener('jarvis-browser-open', openBrowser);
+      window.removeEventListener('jarvis-browser-close', closeBrowser);
+    };
+  }, []); // Browser commands are global app events.
 
   useEffect(() => {
     const openCamera = () => setCameraMode(true);
@@ -66,19 +90,20 @@ export function ChatPage() {
           J.A.R.V.I.S. <span className="text-cyan-400">// {orbState.toUpperCase()}</span>
         </div>
         <SatelliteControl />
+        <WakeWordControl />
         {voiceError && (
           <div className="pointer-events-none absolute right-5 top-28 z-20 rounded-full border border-amber-300/30 bg-slate-950/80 px-3 py-2 font-mono text-[9px] tracking-wider text-amber-200 backdrop-blur">
             START JARVIS AUDIO SATELLITE
           </div>
         )}
-        <JarvisBrowser />
+        <JarvisBrowser open={browserOpen} onClose={closeBrowser} />
         <MemoryGraph />
         <button
           type="button"
           onClick={() => navigate('/settings')}
           className="absolute bottom-5 left-5 z-20 rounded-full border border-cyan-300/20 bg-slate-950/70 p-2 text-cyan-200/75 backdrop-blur transition-colors hover:border-cyan-300/50 hover:text-cyan-100"
-          title="Ajustes"
-          aria-label="Ajustes"
+          title={t(locale, 'settings')}
+          aria-label={t(locale, 'settings')}
         >
           <Settings size={16} />
         </button>

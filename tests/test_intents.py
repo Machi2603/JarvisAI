@@ -17,3 +17,8 @@ def test_camera_discussion_does_not_open_camera():
 
 def test_close_camera_intent():
     assert detect_intent("sal del modo cámara")[0] == "close_camera"
+
+
+def test_browser_intents():
+    assert detect_intent("abre el navegador")[0] == "open_browser"
+    assert detect_intent("cierra el navegador")[0] == "close_browser"

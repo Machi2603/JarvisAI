@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from functools import lru_cache
+import re
+import unicodedata
 
 OPEN_CAMERA = (
     "abre la cámara", "activa la cámara", "enciende la cámara", "pon la cámara",
@@ -19,6 +20,16 @@ CLOSE_CAMERA = (
     "desactiva la cámara", "cierra la webcam", "apaga la webcam", "quita la webcam",
     "vuelve al modo normal", "sal de la vista de cámara",
 )
+OPEN_BROWSER = (
+    "abre el navegador", "abre el browser", "abre jarvis browser",
+    "muestra el navegador", "abre una ventana del navegador",
+    "quiero navegar", "abre internet", "navega por internet",
+    "busca en internet", "busca en la web", "haz una búsqueda web",
+)
+CLOSE_BROWSER = (
+    "cierra el navegador", "cierra jarvis browser", "oculta el navegador",
+    "quita el navegador", "cierra la ventana del navegador",
+)
 OTHER = (
     "qué hora es", "abre el navegador", "busca restaurantes", "pon música",
     "qué cámara me recomiendas", "busca una cámara para comprar",
@@ -29,35 +40,25 @@ OTHER = (
 )
 
 
-@lru_cache(maxsize=1)
-def _model():
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.pipeline import make_pipeline
+def _normalise(text: str) -> str:
+    text = unicodedata.normalize("NFD", text.casefold())
+    text = "".join(char for char in text if unicodedata.category(char) != "Mn")
+    return re.sub(r"[^a-z0-9]+", " ", text).strip()
 
-    texts = [*OPEN_CAMERA, *CLOSE_CAMERA, *OTHER]
-    labels = [
-        *(["open_camera"] * len(OPEN_CAMERA)),
-        *(["close_camera"] * len(CLOSE_CAMERA)),
-        *(["none"] * len(OTHER)),
-    ]
-    model = make_pipeline(
-        TfidfVectorizer(
-            analyzer="char_wb", ngram_range=(2, 5), strip_accents="unicode"
-        ),
-        LogisticRegression(C=4.0, max_iter=500),
-    )
-    return model.fit(texts, labels)
+
+def _matches(text: str, phrases: tuple[str, ...]) -> bool:
+    return any(_normalise(phrase) in text for phrase in phrases)
 
 
 def detect_intent(text: str) -> tuple[str, float]:
-    """Return a high-confidence interface intent or ``none``."""
-    model = _model()
-    probabilities = model.predict_proba([text])[0]
-    index = int(probabilities.argmax())
-    label = str(model.classes_[index])
-    confidence = float(probabilities[index])
-    threshold = 0.5 if label == "close_camera" else 0.68
-    if label in {"open_camera", "close_camera"} and confidence >= threshold:
-        return label, confidence
-    return "none", confidence
+    """Recognise explicit interface commands without a heavyweight ML runtime."""
+    normalized = _normalise(text)
+    for label, phrases in (
+        ("close_camera", CLOSE_CAMERA),
+        ("close_browser", CLOSE_BROWSER),
+        ("open_camera", OPEN_CAMERA),
+        ("open_browser", OPEN_BROWSER),
+    ):
+        if _matches(normalized, phrases):
+            return label, 1.0
+    return "none", 0.0

@@ -69,7 +69,7 @@ if ($LASTEXITCODE -ne 0) { throw "Portable runtime dependency installation faile
 
 & $Python -c "import openjarvis, faster_whisper, openwakeword; print('Portable Jarvis runtime OK')"
 $env:PLAYWRIGHT_BROWSERS_PATH = Join-Path $Runtime 'ms-playwright'
-& $Python -m playwright install chromium --no-shell
+& $Python -m playwright install chromium
 if ($LASTEXITCODE -ne 0) { throw "Playwright browser installation failed: $LASTEXITCODE" }
 
 New-Item (Join-Path $Runtime '.gitkeep') -ItemType File -Force | Out-Null

@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { apiFetch } from '../../lib/api';
+import { useAppStore } from '../../lib/store';
+import { t } from '../../lib/i18n';
 
 type BrowserState = { url: string; title: string; screenshot: string };
 
-export function JarvisBrowser() {
-  const [open, setOpen] = useState(true);
+export function JarvisBrowser({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const locale = useAppStore((s) => s.settings.locale);
   const [state, setState] = useState<BrowserState | null>(null);
-  const [error, setError] = useState('INITIALIZING BROWSER');
+  const [error, setError] = useState<string>(t(locale, 'browserOffline'));
   const [position, setPosition] = useState(() => ({ x: Math.max(24, window.innerWidth - Math.min(window.innerWidth * 0.44, 520) - 20), y: 112 }));
   const drag = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
+    if (!open) return;
     let alive = true;
     const refresh = async () => {
       try {
@@ -19,13 +22,13 @@ export function JarvisBrowser() {
         if (!response.ok) throw new Error(await response.text());
         if (alive) { setState(await response.json()); setError(''); }
       } catch {
-        if (alive) setError('BROWSER OFFLINE');
+        if (alive) setError(t(locale, 'browserOffline'));
       }
     };
     void refresh();
     const timer = window.setInterval(() => void refresh(), 1500);
     return () => { alive = false; window.clearInterval(timer); };
-  }, []);
+  }, [locale, open]);
 
   useEffect(() => {
     const move = (event: MouseEvent) => {
@@ -48,10 +51,10 @@ export function JarvisBrowser() {
         <button
           type="button"
           onMouseDown={(event) => event.stopPropagation()}
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           className="ml-1 rounded p-0.5 text-cyan-100/60 hover:bg-cyan-300/10 hover:text-cyan-100"
-          title="Cerrar navegador"
-          aria-label="Cerrar navegador"
+          title={t(locale, 'closeBrowser')}
+          aria-label={t(locale, 'closeBrowser')}
         >
           <X size={14} />
         </button>

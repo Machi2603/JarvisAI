@@ -66,8 +66,9 @@ function saveConversations(store: ConversationStore): void {
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
+export type Locale = 'es' | 'en';
 
-interface Settings {
+export interface Settings {
   theme: ThemeMode;
   apiUrl: string;
   // Local server API key (OPENJARVIS_API_KEY). Sent as a Bearer token on
@@ -80,6 +81,7 @@ interface Settings {
   temperature: number;
   maxTokens: number;
   speechEnabled: boolean;
+  locale: Locale;
 }
 
 function loadSettings(): Settings {
@@ -93,6 +95,7 @@ function loadSettings(): Settings {
     temperature: 0.7,
     maxTokens: 4096,
     speechEnabled: false,
+    locale: 'es',
   };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);

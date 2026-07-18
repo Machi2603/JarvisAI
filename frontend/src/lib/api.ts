@@ -348,6 +348,11 @@ export async function detectIntent(text: string): Promise<{ intent: string; conf
   return res.json();
 }
 
+export async function setJarvisBrowserOpen(open: boolean): Promise<void> {
+  const response = await apiFetch(`/v1/browser/${open ? 'open' : 'close'}`, { method: 'POST' });
+  if (!response.ok) throw new Error(await response.text());
+}
+
 export async function transcribeAudio(
   audioBlob: Blob,
   filename = 'recording.webm',

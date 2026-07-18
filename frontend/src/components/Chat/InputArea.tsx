@@ -6,6 +6,7 @@ import { streamChat, streamResearch } from '../../lib/sse';
 import { detectIntent, fetchSavings, getBase } from '../../lib/api';
 import { listConnectors, getSyncStatus } from '../../lib/connectors-api';
 import { isCameraCommand } from '../JarvisVoice/wake-word';
+import { t } from '../../lib/i18n';
 import type {
   ChatMessage,
   MessageTelemetry,
@@ -84,6 +85,7 @@ export function InputArea() {
   const streamState = useAppStore((s) => s.streamState);
   const messages = useAppStore((s) => s.messages);
   const maxTokens = useAppStore((s) => s.settings.maxTokens);
+  const locale = useAppStore((s) => s.settings.locale);
   const temperature = useAppStore((s) => s.settings.temperature);
   const createConversation = useAppStore((s) => s.createConversation);
   const addMessage = useAppStore((s) => s.addMessage);
@@ -147,8 +149,16 @@ export function InputArea() {
       window.dispatchEvent(new Event('jarvis-camera-close'));
       return;
     }
+    if (cameraIntent?.intent === 'open_browser') {
+      window.dispatchEvent(new Event('jarvis-browser-open'));
+    }
+    if (cameraIntent?.intent === 'close_browser') {
+      setInput('');
+      window.dispatchEvent(new Event('jarvis-browser-close'));
+      return;
+    }
     if (!selectedModel) {
-      toast.error('Configura un modelo en Ajustes.');
+      toast.error(t(locale, 'configureModel'));
       return;
     }
 
@@ -574,7 +584,7 @@ export function InputArea() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={selectedModel ? 'Ask Jarvis...' : 'Configura un modelo en Ajustes...'}
+          placeholder={selectedModel ? t(locale, 'askJarvis') : t(locale, 'configureModel')}
           rows={1}
           className="flex-1 bg-transparent outline-none resize-none text-sm leading-relaxed text-cyan-50 placeholder:text-cyan-200/30"
           style={{ maxHeight: '200px' }}
@@ -585,7 +595,7 @@ export function InputArea() {
             onClick={stopStreaming}
             className="p-2 rounded-xl transition-colors shrink-0 cursor-pointer"
             style={{ background: 'var(--color-error)', color: 'var(--color-on-accent)' }}
-            title="Stop generating"
+            title={t(locale, 'stop')}
           >
             <Square size={16} />
           </button>
@@ -594,7 +604,7 @@ export function InputArea() {
             <button
               onClick={() => void sendMessage()}
               disabled={!input.trim() || modelLoading || !selectedModel}
-              title={selectedModel ? 'Send message' : 'Configura un modelo en Ajustes'}
+              title={selectedModel ? t(locale, 'send') : t(locale, 'configureModel')}
               className="p-2 rounded-xl transition-colors shrink-0 cursor-pointer disabled:opacity-30 disabled:cursor-default"
               style={{
                 background: input.trim() ? 'var(--color-accent)' : 'transparent',
