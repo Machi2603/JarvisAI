@@ -81,6 +81,7 @@ export interface Settings {
   temperature: number;
   maxTokens: number;
   speechEnabled: boolean;
+  voiceId: string;
   locale: Locale;
 }
 
@@ -94,7 +95,8 @@ function loadSettings(): Settings {
     defaultAgent: '',
     temperature: 0.7,
     maxTokens: 4096,
-    speechEnabled: false,
+    speechEnabled: true,
+    voiceId: 'em_alex',
     locale: 'es',
   };
   try {

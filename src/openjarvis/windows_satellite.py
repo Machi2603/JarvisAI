@@ -25,6 +25,14 @@ import numpy as np
 RATE = 16_000
 FRAME_SAMPLES = 1_280  # 80 ms, openWakeWord's native streaming interval.
 LOGGER = logging.getLogger("jarvis.satellite")
+KOKORO_VOICE_IDS = frozenset({
+    "em_alex", "em_santa", "ef_dora", "af_heart", "af_bella", "am_adam", "am_michael",
+})
+
+
+def selected_voice(value: Any) -> str:
+    """Accept only voices bundled with the local Kokoro runtime."""
+    return value if isinstance(value, str) and value in KOKORO_VOICE_IDS else "em_alex"
 
 
 @dataclass(slots=True)
@@ -202,7 +210,11 @@ class WindowsSatellite:
                     continue
                 if message.get("type") == "speak" and message.get("text"):
                     asyncio.create_task(
-                        asyncio.to_thread(self.speak, str(message["text"]))
+                        asyncio.to_thread(
+                            self.speak,
+                            str(message["text"]),
+                            selected_voice(message.get("voice_id")),
+                        )
                     )
                 elif message.get("type") == "stop_speaking":
                     self.stop_playback.set()
@@ -366,7 +378,7 @@ class WindowsSatellite:
             LOGGER.exception("Audio worker stopped")
             self.emit({"type": "error", "message": f"Audio satellite failed: {exc}"})
 
-    def speak(self, text: str) -> None:
+    def speak(self, text: str, voice_id: str = "em_alex") -> None:
         import httpx
         import sounddevice as sd
         import soundfile as sf
@@ -380,7 +392,7 @@ class WindowsSatellite:
             response = httpx.post(
                 f"{self.config.server_url}/v1/speech/synthesize",
                 headers=headers,
-                json={"text": text, "voice_id": "em_alex"},
+                json={"text": text, "voice_id": selected_voice(voice_id)},
                 timeout=120,
             )
             response.raise_for_status()

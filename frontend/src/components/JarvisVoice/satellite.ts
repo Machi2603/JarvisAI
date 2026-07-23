@@ -64,9 +64,9 @@ export function connectSatellite(onConnection: (connected: boolean) => void): ()
   };
 }
 
-export function speakThroughSatellite(text: string): boolean {
+export function speakThroughSatellite(text: string, voiceId = 'em_alex'): boolean {
   if (!socket || socket.readyState !== WebSocket.OPEN) return false;
-  socket.send(JSON.stringify({ type: 'speak', text }));
+  socket.send(JSON.stringify({ type: 'speak', text, voice_id: voiceId }));
   return true;
 }
 

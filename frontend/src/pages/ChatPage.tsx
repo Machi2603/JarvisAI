@@ -20,6 +20,7 @@ export function ChatPage() {
   const messages = useAppStore((s) => s.messages);
   const locale = useAppStore((s) => s.settings.locale);
   const speechEnabled = useAppStore((s) => s.settings.speechEnabled);
+  const voiceId = useAppStore((s) => s.settings.voiceId);
   const [speaking, setSpeaking] = useState(false);
   const [voiceError, setVoiceError] = useState(false);
   const [cameraMode, setCameraMode] = useState(false);
@@ -33,8 +34,8 @@ export function ChatPage() {
     const last = messages[messages.length - 1];
     if (!speechEnabled || streamState.isStreaming || !last || last.role !== 'assistant' || !last.content || spokenMessage.current === last.id) return;
     spokenMessage.current = last.id;
-    setVoiceError(!speakThroughSatellite(last.content));
-  }, [messages, speechEnabled, streamState.isStreaming]);
+    setVoiceError(!speakThroughSatellite(last.content, voiceId));
+  }, [messages, speechEnabled, streamState.isStreaming, voiceId]);
 
   useEffect(() => {
     const stop = () => stopSatelliteSpeech();

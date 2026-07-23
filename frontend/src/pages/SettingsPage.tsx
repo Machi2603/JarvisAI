@@ -12,6 +12,7 @@ import {
   getMemoryStats, isTauri, saveCloudKey, setInferenceSource, type InferenceSource, type ProviderModel,
 } from '../lib/api';
 import { isAutoUpdateDisabled, setAutoUpdateDisabled } from '../components/Desktop/UpdateChecker';
+import { speakThroughSatellite } from '../components/JarvisVoice/satellite';
 import { t } from '../lib/i18n';
 import { useAppStore } from '../lib/store';
 
@@ -22,6 +23,10 @@ const PROVIDER_KEYS: Record<string, string> = {
 
 const fieldClass = 'mt-2 w-full rounded-lg border border-white/10 bg-[#0b111b] px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60';
 const secondaryButtonClass = 'inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-300 transition hover:bg-white/[0.08] disabled:opacity-60';
+const LOCAL_VOICES = [
+  ['em_alex', 'Alex \u00b7 Espa\u00f1ol'], ['em_santa', 'Santa \u00b7 Espa\u00f1ol'], ['ef_dora', 'Dora \u00b7 Espa\u00f1ol'],
+  ['af_heart', 'Heart \u00b7 English'], ['af_bella', 'Bella \u00b7 English'], ['am_adam', 'Adam \u00b7 English'], ['am_michael', 'Michael \u00b7 English'],
+] as const;
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -51,6 +56,9 @@ export function SettingsPage() {
   const importRef = useRef<HTMLInputElement>(null);
   const locale = settings.locale;
   const tr = (key: Parameters<typeof t>[1]) => t(locale, key);
+  const voiceText = locale === 'es'
+    ? { title: 'Voz de Jarvis', help: 'Voces locales incluidas con Jarvis.', test: 'Probar voz', preview: 'Hola, soy Jarvis. Sistemas de voz preparados.' }
+    : { title: 'Jarvis voice', help: 'Local voices bundled with Jarvis.', test: 'Test voice', preview: 'Hello, I am Jarvis. Voice systems are ready.' };
   const close = () => navigate('/');
 
   const loadGroqCatalog = async () => {
@@ -170,6 +178,7 @@ export function SettingsPage() {
           </Panel>}
           {section === 'voice' && <Panel title={tr('voice')} description={tr('voiceHelp')}>
             <SettingBlock title={tr('speechEnabled')} description={tr('speechEnabledHelp')}><Toggle checked={settings.speechEnabled} onChange={(speechEnabled) => updateSettings({ speechEnabled })} /></SettingBlock>
+            <SettingBlock title={voiceText.title} description={voiceText.help}><div className="space-y-2"><select className={fieldClass} value={settings.voiceId} onChange={(event) => updateSettings({ voiceId: event.target.value })}>{LOCAL_VOICES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select><button type="button" onClick={() => speakThroughSatellite(voiceText.preview, settings.voiceId)} className={secondaryButtonClass}>{voiceText.test}</button></div></SettingBlock>
             <SettingBlock title={tr('status')}><Status value={speechAvailable === null ? tr('checking') : speechAvailable ? tr('available') : tr('unavailable')} ok={speechAvailable === true} /></SettingBlock>
           </Panel>}
           {section === 'ai' && <Panel title={tr('aiModels')} description={tr('aiModelsHelp')}>
