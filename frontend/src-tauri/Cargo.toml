@@ -1,6 +1,6 @@
 [package]
 name = "jarvis-desktop"
-version = "1.1.1"
+version = "1.2.2"
 description = "JarvisAI desktop assistant"
 edition = "2021"
 license = "MIT"
