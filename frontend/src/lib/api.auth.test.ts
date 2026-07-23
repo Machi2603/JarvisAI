@@ -94,3 +94,13 @@ describe('authHeaders', () => {
     });
   });
 });
+
+describe('tauriErrorMessage', () => {
+  it('keeps Tauri strings and Error messages, falling back only when empty', async () => {
+    const { tauriErrorMessage } = await freshApi();
+    expect(tauriErrorMessage('Groq model catalog returned HTTP 401', 'fallback')).toBe('Groq model catalog returned HTTP 401');
+    expect(tauriErrorMessage(new Error('Credential Manager is unavailable'), 'fallback')).toBe('Credential Manager is unavailable');
+    expect(tauriErrorMessage('', 'fallback')).toBe('fallback');
+    expect(tauriErrorMessage(new Error(''), 'fallback')).toBe('fallback');
+  });
+});

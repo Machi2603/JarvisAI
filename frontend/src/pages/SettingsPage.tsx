@@ -9,7 +9,7 @@ import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart';
 import { check } from '@tauri-apps/plugin-updater';
 import {
   applyInferenceConfig, fetchSpeechHealth, getInferenceSource, listProviderModels,
-  getMemoryStats, isTauri, saveCloudKey, setInferenceSource, type InferenceSource, type ProviderModel,
+  getMemoryStats, isTauri, saveCloudKey, setInferenceSource, tauriErrorMessage, type InferenceSource, type ProviderModel,
 } from '../lib/api';
 import { isAutoUpdateDisabled, setAutoUpdateDisabled } from '../components/Desktop/UpdateChecker';
 import { speakThroughSatellite } from '../components/JarvisVoice/satellite';
@@ -17,10 +17,6 @@ import { t } from '../lib/i18n';
 import { useAppStore } from '../lib/store';
 
 type Section = 'general' | 'voice' | 'ai' | 'memory' | 'data' | 'application';
-const PROVIDER_KEYS: Record<string, string> = {
-  groq: 'GROQ_API_KEY', openai: 'OPENAI_API_KEY', anthropic: 'ANTHROPIC_API_KEY', gemini: 'GEMINI_API_KEY',
-};
-
 const fieldClass = 'mt-2 w-full rounded-lg border border-white/10 bg-[#0b111b] px-3 py-2.5 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60';
 const secondaryButtonClass = 'inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-sm text-slate-300 transition hover:bg-white/[0.08] disabled:opacity-60';
 const LOCAL_VOICES = [
@@ -103,12 +99,11 @@ export function SettingsPage() {
       } else {
         await applyInferenceConfig(provider, source.model || '', apiKey || undefined);
       }
-      if (apiKey && PROVIDER_KEYS[provider]) await saveCloudKey(PROVIDER_KEYS[provider], apiKey);
       setSelectedModel(source.model || '');
       updateSettings({ defaultModel: source.model || '' });
       setApiKey(''); setKeySaved(true); setTimeout(() => setKeySaved(false), 1800);
-    } catch (error: any) {
-      setModelMessage(error?.message || 'Could not save the model.');
+    } catch (error) {
+      setModelMessage(tauriErrorMessage(error, 'Could not save the model.'));
     } finally { setSavingModel(false); }
   };
 

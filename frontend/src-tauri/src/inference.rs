@@ -983,7 +983,8 @@ pub(crate) fn read_inference_config() -> InferenceConfig {
 pub(crate) fn write_inference_config(cfg: &InferenceConfig) -> Result<(), String> {
     let path = inference_config_path();
     if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create inference config directory: {}", e))?;
     }
     let json = serde_json::to_string_pretty(cfg).map_err(|e| e.to_string())?;
     std::fs::write(&path, json + "\n")
@@ -1009,7 +1010,8 @@ pub(crate) fn set_engine_host_in_config(engine: &str, host: &str) -> Result<(), 
         .join(".openjarvis")
         .join("config.toml");
     if let Some(parent) = path.parent() {
-        let _ = std::fs::create_dir_all(parent);
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create config directory: {}", e))?;
     }
     let existing = std::fs::read_to_string(&path).unwrap_or_default();
     let updated = upsert_engine_host(&existing, engine, host)?;

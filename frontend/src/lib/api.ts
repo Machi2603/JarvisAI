@@ -1178,16 +1178,30 @@ export async function setInferenceSource(
 
 export type ProviderModel = { id: string; name?: string | null };
 
+export function tauriErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message.trim()) return error.message;
+  if (typeof error === 'string' && error.trim()) return error;
+  if (error && typeof error === 'object') {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) return message;
+  }
+  return fallback;
+}
+
 export async function listProviderModels(
   provider: Exclude<InferenceSource['provider'], 'ollama' | 'custom'>,
   candidateKey?: string,
 ): Promise<ProviderModel[]> {
   if (!isTauri()) throw new Error('Provider catalogs are available in the desktop app only.');
-  const { invoke } = await import('@tauri-apps/api/core');
-  return invoke<ProviderModel[]>('list_provider_models', {
-    provider,
-    candidateKey: candidateKey?.trim() || null,
-  });
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return await invoke<ProviderModel[]>('list_provider_models', {
+      provider,
+      candidateKey: candidateKey?.trim() || null,
+    });
+  } catch (error) {
+    throw new Error(tauriErrorMessage(error, 'Could not load provider models.'));
+  }
 }
 
 export async function applyInferenceConfig(
@@ -1196,16 +1210,24 @@ export async function applyInferenceConfig(
   candidateKey?: string,
 ): Promise<void> {
   if (!isTauri()) throw new Error('Provider configuration is available in the desktop app only.');
-  const { invoke } = await import('@tauri-apps/api/core');
-  await invoke('apply_inference_config', {
-    provider,
-    model,
-    candidateKey: candidateKey?.trim() || null,
-  });
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    await invoke('apply_inference_config', {
+      provider,
+      model,
+      candidateKey: candidateKey?.trim() || null,
+    });
+  } catch (error) {
+    throw new Error(tauriErrorMessage(error, 'Could not save the model.'));
+  }
 }
 
 export async function getProviderStatuses(): Promise<Record<string, boolean>> {
   if (!isTauri()) return {};
-  const { invoke } = await import('@tauri-apps/api/core');
-  return invoke<Record<string, boolean>>('get_provider_statuses');
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return await invoke<Record<string, boolean>>('get_provider_statuses');
+  } catch (error) {
+    throw new Error(tauriErrorMessage(error, 'Could not read provider statuses.'));
+  }
 }
